@@ -71,7 +71,9 @@ Ext.ux.TDGi.MenuKeyTrigger = Ext.extend(Object, {
         items.each(function(item) {
             if (item.triggerKey) {
                 keys[item.triggerKey.substr(0,1).toUpperCase()] = item;
-            }
+
+                item.setText(item.text);
+	    }
             
             if (item.menu && this.selfPropegate) {
                 var plugin = new this.constructor(this.initialConfig);
@@ -159,3 +161,19 @@ Ext.ux.TDGi.MenuKeyTrigger = Ext.extend(Object, {
 });
 
 Ext.preg('ux.MenuKeyTrigger', Ext.ux.TDGi.MenuKeyTrigger);
+
+// Ugly override to Ext.menu.Item to auto-underline hotkey when setText is called.
+Ext.override(Ext.menu.Item, {
+  setText: function(text) {
+    this.text = text || '&#160;';
+    if (this.rendered) {
+      if (this.triggerKey) {
+        if (this.text.match(new RegExp(this.triggerKey, 'i'))) {
+          this.text = this.text.replace(new RegExp('(' + this.triggerKey + ')', 'i'), '<u>$1</u>');
+        }
+      }
+      this.textEl.update(this.text);
+      this.parentMenu.layout.doAutoSize();
+    }
+  }
+});
